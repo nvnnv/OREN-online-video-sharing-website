@@ -98,4 +98,17 @@ class Video_Model extends CI_Model {
         $query = $this->db->query("select * from video where id in (select video_id from video_type where type='$tag') limit $per_page offset $start");
         return $query->result();
     }
+
+    public function get_videos_like_name($name, $per_page, $start){
+        $query = $this->db->query("select * from video where name like '%$name%' limit $per_page offset $start");
+        return $query->result();
+    }
+
+    public function get_videos_by_user_nickname($nickname, $per_page, $start) {
+        $query = $this->db->query("select * from video where id in 
+            (select video_id from user_upload_video where user_id in 
+            (select id from users where nick_name='$nickname')) 
+            limit $per_page offset $start");
+        return $query->result();
+    }
 }

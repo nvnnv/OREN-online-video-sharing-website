@@ -12,7 +12,6 @@ class User_Model extends CI_Model {
         $data["nick_name"] = $nickname;
         $data["user_img"] = $this->DEFAULT_USER_IMG;
         $data["create_time"] = date('Y-m-d H:i:s');
-        $data["kill"] = 0; // 0 = normal user 1 = abnormol user
         try {
             $this->db->insert("users", $data);
         } catch (Exception $e){
@@ -36,6 +35,7 @@ class User_Model extends CI_Model {
                 $user_data['user_img'] = $row['user_img'];
                 $user_data['create_time'] = $row['create_time'];
                 $user_data['login'] = true;
+                $user_data['kill'] = $row['kill'];
                 return true;
             }
         } catch (Exception $e){
@@ -108,5 +108,13 @@ class User_Model extends CI_Model {
         }
         $query = $this->db->get('users');
         return $query->result();
+    }
+
+    public function activate($username){
+        $data = [
+            'kill' => 0,
+        ];
+        $this->db->where('username', $username);
+        $this->db->update('users', $data);
     }
 }

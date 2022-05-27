@@ -54,13 +54,21 @@ $(window).scroll(function() {
 	var scrollPosition = $(window).height() + $(window).scrollTop();
 	if($(window).scrollTop() + $(window).height() >= $(document).height()) {
 		console.log('bottom', page);
-		$.ajax('/oren/video/get_batch_videos_by_tag_json', {
+		const keytype = <?php echo $keytype?>;
+		const key = <?php echo $keyword?>;
+		let url = '';
+		if (keytype === 1){
+			url = '/oren/video/search_videos_json_by_title'
+		}else {
+			rl = '/oren/video/search_videos_json_by_user'
+		}
+		$.ajax(url, {
 			dataType: 'json',
 			type: 'POST',
 			data:{
 				page:page,
 				per_page:10,	
-                tag: <?php echo $tag ?>,
+                key: key,
 			},
 			success: function (data,status,xhr) {   // success callback function
 				console.log(data);
@@ -92,7 +100,5 @@ $(window).scroll(function() {
 			}
    		});
     }
-	if (Math.abs((scrollHeight - scrollPosition) / scrollHeight) <= 0.002) {
-	}
 });
 </script>

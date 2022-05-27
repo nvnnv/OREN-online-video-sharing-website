@@ -8,7 +8,7 @@
                     </a>
                 </div><!--menu_logo end-->
                 <div class="search_form">
-                    <form>
+                    <form action="/oren/video/search_videos" method="POST">
                         <input type="text" name="search" placeholder="Search Videos">
                         <button type="submit">
                             <i class="icon-search"></i>

@@ -253,7 +253,6 @@ $(window).scroll(function() {
 									'</div>';
 					});
 					$('.row').append(video_items);
-					page += 1;
 				}
 			},
 			error: function (jqXhr, textStatus, errorMessage) { // error callback 
@@ -261,5 +260,6 @@ $(window).scroll(function() {
 			}
    		});
     }
+	page += 1;
 });
 </script>

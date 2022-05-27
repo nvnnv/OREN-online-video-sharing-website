@@ -9,7 +9,23 @@ class User extends CI_Controller {
 		$this->load->model("User_Model");
 		$this->load->model("Video_Model");
 		$this->load->helper('url');
+
 		$this->load->helper("info_format_helper"); // new helper has to end with 'helper'
+		$this->load->library('email');
+		$mail_config['smtp_host'] = 'smtp.gmail.com';
+		$mail_config['smtp_port'] = '587';
+		$mail_config['smtp_user'] = 'xxx@gmail.com';
+		$mail_config['_smtp_auth'] = TRUE;
+		$mail_config['smtp_pass'] = '';
+		$mail_config['smtp_crypto'] = 'tls';
+		$mail_config['protocol'] = 'smtp';
+		$mail_config['mailtype'] = 'html';
+		$mail_config['send_multipart'] = FALSE;
+		$mail_config['charset'] = 'utf-8';
+		$mail_config['wordwrap'] = TRUE;
+		$this->email->initialize($mail_config);
+		$this->email->set_newline("\r\n");
+
 	}
 
 	public function go_to_signup_page()
@@ -22,11 +38,38 @@ class User extends CI_Controller {
 
 	public function go_to_login_page()
 	{
+		// $this->load->library('image_lib');
+		// $this->load->helper('captcha');
+		// $vals = array(
+		// 	'img_path'      => './images/',
+		// 	'img_url'       => base_url().'images/',
+		// 	'font_path'     => './path/to/fonts/texb.ttf',
+		// 	'img_width'     => '150',
+		// 	'img_height'    => 30,
+		// 	'expiration'    => 7200,
+		// 	'word_length'   => 8,
+		// 	'font_size'     => 16,
+		// 	'img_id'        => 'Imageid',
+		// 	'pool'          => '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+	
+		// 	// White background and border, black text and red grid
+		// 	'colors'        => array(
+		// 			'background' => array(255, 255, 255),
+		// 			'border' => array(255, 255, 255),
+		// 			'text' => array(0, 0, 0),
+		// 			'grid' => array(255, 40, 40)
+		// 	)
+		// );
+	
+		// $cap = create_cacaptcha($vals);
+		// //echo '1';
+		// print_r($cap);exit;
 		$this->load->view('style_sheet');
 		$this->load->view('header');
 		$this->load->view("login");
 		$this->load->view('footer');
 	}
+
 
 	public function go_to_info_panel()
 	{
@@ -213,7 +256,6 @@ class User extends CI_Controller {
 	
 	public function login()
 	{	
-		// if user already logged in
 		if (isset($_SESSION['login']))
 		{
 			$this->load->view('style_sheet');
@@ -224,6 +266,7 @@ class User extends CI_Controller {
 		}
 		$username = $_POST["username"];
 		$password = $_POST["password"];
+
 		$data = array(
 			'username' => $username,
 			'error' => 'wrong username or password',
@@ -240,6 +283,14 @@ class User extends CI_Controller {
 		$user_data = [];
 		if ($this->User_Model->get_a_user($username, $password, $user_data, $error))
 		{	
+			if ($user_data['kill'] == -1) {
+				$data['error'] = 'Please activate your account.';
+				$this->load->view('style_sheet');
+				$this->load->view('header');
+				$this->load->view("login", $data);
+				$this->load->view('footer');
+				return;
+			}
 			$user_data['password'] = '';
 			$this->session->set_userdata($user_data);// unpackage
 			$this->load->view('style_sheet');
@@ -333,9 +384,28 @@ class User extends CI_Controller {
 			$this->load->view('footer');
 			return;
 		}
+		$items = explode('@', $username); // 876837608@qq.com
+		// ['876837068', 'qq.com']
+		$activate_url = base_url() . 'user/activate/'.$items[0].'/'.$items[1];
+		// http://localhost/oren/user/activate/876837608/qq.com
+		echo $activate_url;
+		$this->email->from('kevinlee8462@gmail.com', 'Oren');
+		$this->email->to($username);
+		$this->email->subject('Oren Account Activation');
+		$this->email->message('<h2>Click <a href="'.$activate_url.'">this</a> to activate your account.</h2>');
+		if ($this->email->send()) {
+			$data['from_sign_up'] = 1;
+			$this->load->view('style_sheet');
+			$this->load->view('header');
+			$this->load->view("login", $data);
+			$this->load->view('footer');
+			return;
+		}
+		echo $this->email->print_debugger();
+		$data['error'] = "Failed to send email.";
 		$this->load->view('style_sheet');
 		$this->load->view('header');
-		$this->load->view("login", $data);
+		$this->load->view('signup', $data);
 		$this->load->view('footer');
 	}
 
@@ -371,5 +441,12 @@ class User extends CI_Controller {
             'error' => $error,
         )));
     }
+
+	public function activate($account, $ex){
+		$account = $account.'@'.$ex;
+		echo $account;
+		$this->User_Model->activate($account);
+		echo '<h2>Your Account has been activated successfully!</h2>';
+	}
 }
 ?>

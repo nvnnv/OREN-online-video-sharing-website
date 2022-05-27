@@ -18,6 +18,11 @@
 		 		<span>Log into your Oren account</span>
 		 	</div><!--hd-lg end-->
 			<div class="user-account-pr">
+					<?php if (isset($from_sign_up)) : ?>
+						<h3 class="input-sec">
+							Signup Successfully, Please check your email to activate it!
+						</h3>
+					<?php endif; ?>
 				<form method='post' action='/oren/user/login'>
 					<div class="input-sec">
 						<?php if (isset($username)) : ?>
@@ -29,13 +34,12 @@
 					<div class="input-sec">
 						<input type="Password" name="password" placeholder="Password">
 					</div>
-					<!-- <div class="chekbox-lg">
-						<label>
-							<input type="checkbox" name="remember" value="rem">
-							<b class="checkmark"> </b>
-							<span>Remember me</span>
-						</label>
-					</div> -->
+					<div class="input-sec">
+						<input type="Password" name="captcha" placeholder="">
+
+						<img src='/oren/application/views/captcha.php'></img>
+					</div>
+
 					<?php if (isset($error)) : ?>
 						<div class="input-sec">
 							<?php echo $error; ?>
@@ -55,3 +59,4 @@
 	</section><!--form_popup end-->
 
 </div><!--wrapper end-->
+

@@ -209,6 +209,13 @@ class Video extends CI_Controller {
 
     public function uploaded_video_list()
     {
+        if (!isset($_SESSION['login'])){
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("login");
+            $this->load->view('footer');
+            return;
+        }
         $config = array();
         $config["base_url"] = base_url() . "video/uploaded_video_list";
         $config["total_rows"] = $this->vmodel->get_count();
@@ -259,6 +266,13 @@ class Video extends CI_Controller {
 
     public function video_details($id)
     {      
+        if (!isset($_SESSION['login'])){
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("login");
+            $this->load->view('footer');
+            return;
+        }
         $result = $this->vmodel->get_video_by_id($id);
         $data['id'] = $result->id;
         $data['title'] = $result->name;
@@ -280,6 +294,13 @@ class Video extends CI_Controller {
     }
 
     public function watched_history(){
+        if (!isset($_SESSION['login'])){
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("login");
+            $this->load->view('footer');
+            return;
+        }
         $config = array();
         $config["base_url"] = base_url() . "video/watched_history";
         $config["total_rows"] = $this->hmodel->get_history_count($_SESSION['user_id']);
@@ -350,11 +371,116 @@ class Video extends CI_Controller {
 
     public function search_videos()
     {
-
+        if (!isset($_SESSION['login'])){
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("login");
+            $this->load->view('footer');
+            return;
+        }
+        $keyword = $_POST['search'];
+        if (is_null($keyword) || is_null($keyword) || is_null($keyword))
+        {
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("no_content");
+            $this->load->view('footer');
+            return;
+        }
+        // only support do searching by video title or video onwer
+        // assume keyword is a video title if having something then return.
+        $result = $this->vmodel->get_videos_like_name($keyword, 10, 0);
+        if (count($result) !== 0)
+        {
+            $data['videos'] = $result;
+            $data['keytype'] = 1;
+            $data['keyword'] = $keyword;
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("search_video_list", $data);
+            $this->load->view('footer');
+            return;
+        }
+        // assume keywork is a video owner, return all videos of this user.
+        $result = $this->vmodel->get_videos_by_user_nickname($keyword, 10, 0);
+        if (count($result) !== 0)
+        {
+            $data['videos'] = $result;
+            $data['keyword'] = 2;
+            $this->load->view('style_sheet');
+            $this->load->view('header');
+            $this->load->view("search_video_list", $data);
+            $this->load->view('footer');
+            return;
+        }
+        // nothing has been found
+        $this->load->view('style_sheet');
+        $this->load->view('header');
+        $this->load->view("no_content");
+        $this->load->view('footer');
     }
 
-    public function search_videos_json()
+    public function search_videos_json_by_user()
     {
+        $page = $_POST['page'];
+        $per_page = $_POST['per_page'];
+        $key = $_POST['key'];
+        if (is_null($page) || is_null($per_page) || is_null($key))
+        {
+            return $this->output->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode(array(
+                'err_code' => '400',
+                'error' => "Param Error",
+            )));
+        }
+        $videos = $this->vmodel->get_videos_by_user_nickname($key, $per_page, $per_page*$page);
+        if (count($videos) !== 0)
+        {
+            $data = array();
+            foreach ($videos as $video)
+            {
+                array_push($data, array('id'=>$video->id, 'title'=>$video->name, 'url'=>$video->url, 'create_time'=>$video->create_time, 'views'=>$video->views));
+            }
+            return $this->output->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode(array(
+                'err_code' => '200',
+                'error' => "OK.",
+                'videos' => $data,
+            )));
+        }
+    }
 
+    public function search_videos_json_by_title()
+    {
+        $page = $_POST['page'];
+        $per_page = $_POST['per_page'];
+        $key = $_POST['key'];
+        if (is_null($page) || is_null($per_page) || is_null($key))
+        {
+            return $this->output->set_content_type('application/json')
+            ->set_status_header(400)
+            ->set_output(json_encode(array(
+                'err_code' => '400',
+                'error' => "Param Error",
+            )));
+        }
+        $videos = $this->vmodel->get_videos_like_name($key, $per_page, $per_page*$page);
+        if (count($videos) !== 0)
+        {
+            $data = array();
+            foreach ($videos as $video)
+            {
+                array_push($data, array('id'=>$video->id, 'title'=>$video->name, 'url'=>$video->url, 'create_time'=>$video->create_time, 'views'=>$video->views));
+            }
+            return $this->output->set_content_type('application/json')
+            ->set_status_header(200)
+            ->set_output(json_encode(array(
+                'err_code' => '200',
+                'error' => "OK.",
+                'videos' => $data,
+            )));
+        }
     }
 }
