@@ -83,3 +83,4 @@ $route['cancel_like_or_dislike'] = 'likes/cancel_like_or_dislike';
 $route['video_user_like_or_dislike'] = 'likes/video_user_like_or_dislike';
 $route['get_comments'] = 'comments/get_comments';
 $route['add_comment'] = 'comments/add_comment';
+$route['activate/(:num)/(:num)'] = 'user/activate/$1/$2';
